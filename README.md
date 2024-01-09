@@ -16,7 +16,7 @@ Convenient wrapper for Material Mkdocs projects via Docker
 
 ```
 Program : mkdox  by peter@forret.com
-Version : v0.0.1 (2024-01-09 10:43)
+Version : v0.1.2 (2024-01-09 14:36)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
 Usage   : mkdox [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] [-P <PORT>] <action> <input?>
 Flags, options and parameters:
@@ -29,7 +29,7 @@ Flags, options and parameters:
     -P|--PORT <?>    : [option] http port for serve  [default: 8000]
     <action>         : [choice] action to perform  [options: new,serve,build,check,env,update]
     <input>          : [parameter] foldername for mkdocs project (optional)
-                                  pforret:pforret/mkdox.git
+    
 ### TIPS & EXAMPLES
 * use mkdox new to create new Mkdocs Matetrial project
   mkdox new <name>
