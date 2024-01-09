@@ -14,7 +14,7 @@ Convenient wrapper for Material Mkdocs projects via Docker
 
 ## 🔥 Usage
 
-```
+```bash
 Program : mkdox  by peter@forret.com
 Version : v0.1.2 (2024-01-09 14:36)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
@@ -32,17 +32,23 @@ Flags, options and parameters:
     
 ### TIPS & EXAMPLES
 * use mkdox new to create new Mkdocs Matetrial project
-  mkdox new <name>
+  `mkdox new <name>`
+  
 * use mkdox build to create static HTML site in _site folder
-  mkdox build
+  `mkdox build`
+  
 * use mkdox serve to start local website server (for preview)
-  mkdox serve
+  `mkdox serve`
+  
 * use mkdox check to check if this script is ready to execute and what values the options/flags are
   mkdox check
+  
 * use mkdox env to generate an example .env file
   mkdox env > .env
+  
 * use mkdox update to update to the latest version
   mkdox update
+  
 * >>> bash script created with pforret/bashew
 * >>> for bash development, also check out pforret/setver and pforret/progressbar
 ```
