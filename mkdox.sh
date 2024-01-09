@@ -76,7 +76,7 @@ function Script:main() {
     build)
       #TIP: use «$script_prefix build» to create static HTML site in _site folder
       #TIP:> $script_prefix build
-      docker run --rm -it -v "${PWD}":/docs "squidfunk/mkdocs-material" build "${input:-.}"
+      docker run --rm -it -v "${PWD}":/docs "squidfunk/mkdocs-material" build
       ;;
 
     serve)
