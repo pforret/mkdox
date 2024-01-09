@@ -10,7 +10,7 @@
 
 ![](assets/unsplash.documents.jpg)
 
-Convenient wrapper for Material Mkdocs projects via Docker
+Convenient bash wrapper for Mkdocs Material projects via Docker
 
 ## 🔥 Usage
 
@@ -30,7 +30,8 @@ Flags, options and parameters:
     <action>         : [choice] action to perform  [options: new,serve,build,check,env,update]
     <input>          : [parameter] foldername for mkdocs project (optional)
     
-### TIPS & EXAMPLES
+TIPS & EXAMPLES
+---------------
 
 # use 'mkdox new' to create new Mkdocs Material project
 mkdox new <name>
