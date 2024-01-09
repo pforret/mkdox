@@ -1,7 +1,6 @@
-log/
-.idea/
-.template*
-.tmp
-.bashew*
 log
-/temp/
+.tmp
+*.tmp
+.env
+.idea
+vendor
