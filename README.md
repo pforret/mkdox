@@ -36,7 +36,7 @@ TIPS & EXAMPLES
 # use 'mkdox new' to create new Mkdocs Material project
 mkdox new <name>
   
-# use 'mkdox build' to create static HTML site in _site folder
+# use 'mkdox build' to create static HTML site in /site folder
 mkdox build
   
 # use 'mkdox serve' to start local website server (for preview)
