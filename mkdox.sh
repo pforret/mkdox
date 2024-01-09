@@ -2,7 +2,7 @@
 ### ==============================================================================
 ### SO HOW DO YOU PROCEED WITH YOUR SCRIPT?
 ### 1. define the flags/options/parameters and defaults you need in Option:config()
-### 2. implement the different actions in Script:main() directly or with helper functions do_action1
+### 2. implement the different actions in Script:main() directly or with helper functions do_new
 ### 3. implement helper functions you defined in previous step
 ### ==============================================================================
 
@@ -51,7 +51,7 @@ flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
-choice|1|action|action to perform|action1,action2,check,env,update
+choice|1|action|action to perform|new,serve,check,env,update
 param|?|input|input file/text
 " -v -e '^#' -e '^\s*$'
 }
@@ -66,16 +66,21 @@ function Script:main() {
   Os:require "awk"
 
   case "${action,,}" in
-    action1)
-      #TIP: use «$script_prefix action1» to ...
-      #TIP:> $script_prefix action1
-      do_action1
+    new)
+      #TIP: use «$script_prefix new» to ...
+      #TIP:> $script_prefix new
+      docker run --rm -it -v "${PWD}":/docs "squidfunk/mkdocs-material" new "${input:-.}"
       ;;
 
-    action2)
-      #TIP: use «$script_prefix action2» to ...
-      #TIP:> $script_prefix action2
-      do_action2
+    serve)
+      #TIP: use «$script_prefix serve» to ...
+      #TIP:> $script_prefix serve
+      (
+        IO:announce "Open web page in 3 sec..."
+        sleep 3
+        explorer.exe http://localhost:8000
+      ) &
+      docker run --rm -it -p 8000:8000 -v "${PWD}":/docs "squidfunk/mkdocs-material"
       ;;
 
     check | env)
@@ -107,20 +112,6 @@ function Script:main() {
 ## Put your helper scripts here
 #####################################################################
 
-function do_action1() {
-  IO:log "action1"
-  # Examples of required binaries/scripts and how to install them
-  # Os:require "ffmpeg"
-  # Os:require "convert" "imagemagick"
-  # Os:require "IO:progressbar" "basher install pforret/IO:progressbar"
-  # (code)
-}
-
-function do_action2() {
-  IO:log "action2"
-  # (code)
-
-}
 
 #####################################################################
 ################### DO NOT MODIFY BELOW THIS LINE ###################
