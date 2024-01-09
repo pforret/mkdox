@@ -101,7 +101,7 @@ function Script:main() {
       sleep 3
       explorer.exe "http://localhost:$PORT"
     ) &
-    docker run --rm -it -p 8000:$PORT -v "${PWD}":/docs "squidfunk/mkdocs-material"
+    docker run --rm -it -p 8000:"$PORT" -v "${PWD}":/docs "squidfunk/mkdocs-material"
     ;;
 
   check | env)
