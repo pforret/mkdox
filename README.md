@@ -8,29 +8,35 @@
 
 # mkdox
 
-easy wrapper for mkdocs in Docker mode
+![](assets/unsplash.documents.jpg)
+
+Convenient wrapper for Material Mkdocs projects via Docker
 
 ## 🔥 Usage
 
 ```
 Program : mkdox  by peter@forret.com
-Version : v0.0.1 (Apr 22 16:07:13 2023)
-Purpose : easy wrapper for mkdocs in Docker mode
-Usage   : mkdox [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] <action>
+Version : v0.0.1 (2024-01-09 10:43)
+Purpose : easy wrapper for Material Mkdocs in Docker mode
+Usage   : mkdox [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] [-P <PORT>] <action> <input?>
 Flags, options and parameters:
     -h|--help        : [flag] show usage [default: off]
     -q|--quiet       : [flag] no output [default: off]
     -v|--verbose     : [flag] also show debug messages [default: off]
     -f|--force       : [flag] do not ask for confirmation (always yes) [default: off]
-    -l|--log_dir <?> : [option] folder for log files   [default: /Users/pforret/log/script]
-    -t|--tmp_dir <?> : [option] folder for temp files  [default: /tmp/script]
-    <action>         : [choice] action to perform  [options: action1,action2,check,env,update]
-                                  
+    -l|--log_dir <?> : [option] folder for log files   [default: /home/pforret/log/mkdox]
+    -t|--tmp_dir <?> : [option] folder for temp files  [default: /tmp/mkdox]
+    -P|--PORT <?>    : [option] http port for serve  [default: 8000]
+    <action>         : [choice] action to perform  [options: new,serve,build,check,env,update]
+    <input>          : [parameter] foldername for mkdocs project (optional)
+                                  pforret:pforret/mkdox.git
 ### TIPS & EXAMPLES
-* use mkdox action1 to ...
-  mkdox action1
-* use mkdox action2 to ...
-  mkdox action2
+* use mkdox new to create new Mkdocs Matetrial project
+  mkdox new <name>
+* use mkdox build to create static HTML site in _site folder
+  mkdox build
+* use mkdox serve to start local website server (for preview)
+  mkdox serve
 * use mkdox check to check if this script is ready to execute and what values the options/flags are
   mkdox check
 * use mkdox env to generate an example .env file
@@ -44,10 +50,10 @@ Flags, options and parameters:
 ## ⚡️ Examples
 
 ```bash
-> mkdox -h 
-# get extended usage info
-> mkdox env > .env
-# create a .env file with default values
+> mkdox new Intranet
+# create new Mkdocs Material project in folder 'Intranet'
+> mkdox -P 8800 serve
+# serve Mkdocs project on http://localhost:8800
 ```
 
 ## 🚀 Installation

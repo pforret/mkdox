@@ -12,7 +12,7 @@ script_version="0.0.1" # if there is a VERSION.md in this script's folder, that 
 readonly script_author="peter@forret.com"
 readonly script_created="2024-01-09"
 readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUST run as root / -1 = script MAY NOT run as root
-readonly script_description="easy wrapper for mkdocs in Docker mode"
+readonly script_description="easy wrapper for Material Mkdocs in Docker mode"
 ## some initialisation
 action=""
 script_prefix=""
@@ -51,8 +51,9 @@ flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
-choice|1|action|action to perform|new,serve,check,env,update
-param|?|input|input file/text
+option|P|PORT|http port for serve|8000
+choice|1|action|action to perform|new,serve,build,check,env,update
+param|?|input|foldername for mkdocs project
 " -v -e '^#' -e '^\s*$'
 }
 
@@ -67,20 +68,26 @@ function Script:main() {
 
   case "${action,,}" in
     new)
-      #TIP: use «$script_prefix new» to ...
-      #TIP:> $script_prefix new
+      #TIP: use «$script_prefix new» to create new Mkdocs Matetrial project
+      #TIP:> $script_prefix new <name>
       docker run --rm -it -v "${PWD}":/docs "squidfunk/mkdocs-material" new "${input:-.}"
       ;;
 
+    build)
+      #TIP: use «$script_prefix build» to create static HTML site in _site folder
+      #TIP:> $script_prefix build
+      docker run --rm -it -v "${PWD}":/docs "squidfunk/mkdocs-material" build "${input:-.}"
+      ;;
+
     serve)
-      #TIP: use «$script_prefix serve» to ...
+      #TIP: use «$script_prefix serve» to start local website server (for preview)
       #TIP:> $script_prefix serve
       (
         IO:announce "Open web page in 3 sec..."
         sleep 3
-        explorer.exe http://localhost:8000
+        explorer.exe "http://localhost:$PORT"
       ) &
-      docker run --rm -it -p 8000:8000 -v "${PWD}":/docs "squidfunk/mkdocs-material"
+      docker run --rm -it -p 8000:$PORT -v "${PWD}":/docs "squidfunk/mkdocs-material"
       ;;
 
     check | env)
