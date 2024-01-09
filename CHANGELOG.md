@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - work on new features
 
+## [0.1.1] - 2024-01-09
+### Added/changed
+- MOD: mkdox.sh
+- first working version
+- MOD: .gitignore mkdox.sh 
 ## [0.0.1] - 2024-01-09
 ### Added
 - create mkdox with [pforret/bashew](https://github.com/pforret/bashew)
