@@ -97,11 +97,10 @@ function Script:main() {
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
     (
-      IO:announce "Open web page in 3 sec..."
-      sleep 3
+      IO:countdown 5 "Open http://localhost:$PORT ..."
       explorer.exe "http://localhost:$PORT"
     ) &
-    docker run --rm -it -p 8000:"$PORT" -v "${PWD}":/docs "squidfunk/mkdocs-material"
+    docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "squidfunk/mkdocs-material"
     ;;
 
   check | env)
