@@ -14,7 +14,7 @@ Convenient bash wrapper for Mkdocs Material projects via Docker
 
 ## 🔥 Usage
 
-```bash
+```
 Program : mkdox  by peter@forret.com
 Version : v0.1.4 (2024-01-18 22:06)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
