@@ -83,7 +83,7 @@ function Script:main() {
     file=mkdocs.yml
     template="$script_install_folder/templates/$file"
     actual="$folder/$file"
-    filesize=$(< $actual wc -c)
+    filesize=$(< "$actual" wc -c)
     if [[ $filesize -eq 19 ]] ; then
       ## minimal mkdocs.yml as installed by docker image
       IO:print "Create $actual ..."
