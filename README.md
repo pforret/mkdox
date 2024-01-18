@@ -35,13 +35,15 @@ TIPS & EXAMPLES
 ---------------
 
 # use 'mkdox new' to create new Mkdocs Material project
-mkdox new <name>
+mkdox new <folder>
+mkdox new . # create in current folder
   
 # use 'mkdox build' to create static HTML site in /site folder
 mkdox build
   
 # use 'mkdox serve' to start local website server (for preview)
 mkdox serve
+mkdox -P 8080 serve # serve on port 8080
   
 # use 'mkdox check' to check if this script is ready to execute and what values the options/flags are
 mkdox check
