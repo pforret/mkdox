@@ -15,10 +15,10 @@ Convenient bash wrapper for Mkdocs Material projects via Docker
 ## 🔥 Usage
 
 ```bash
-Program : mkdox by peter@forret.com
-Version : v0.1.2 (2024-01-09 14:36)
+Program : mkdox  by peter@forret.com
+Version : v0.1.4 (2024-01-18 22:06)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
-Usage   : mkdox [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] [-P <PORT>] <action> <input?>
+Usage   : mkdox [-h] [-q] [-v] [-f] [-l <log_dir>] [-t <tmp_dir>] [-P <PORT>] [-D <DOCKER>] <action> <input?>
 Flags, options and parameters:
     -h|--help        : [flag] show usage [default: off]
     -q|--quiet       : [flag] no output [default: off]
@@ -27,6 +27,7 @@ Flags, options and parameters:
     -l|--log_dir <?> : [option] folder for log files   [default: /home/pforret/log/mkdox]
     -t|--tmp_dir <?> : [option] folder for temp files  [default: /tmp/mkdox]
     -P|--PORT <?>    : [option] http port for serve  [default: 8000]
+    -D|--DOCKER <?>  : [option] docker image to use  [default: pforret/mkdox-material]
     <action>         : [choice] action to perform  [options: new,serve,build,check,env,update]
     <input>          : [parameter] foldername for mkdocs project (optional)
     
