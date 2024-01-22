@@ -52,9 +52,10 @@ flag|f|force|do not ask for confirmation (always yes)
 flag|R|RECURSIVE|for mkdox subpages
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
-option|P|PORT|http port for serve|8000
 option|D|DOCKER|docker image to use|pforret/mkdox-material
-choice|1|action|action to perform|new,serve,build,subpages,check,env,update
+option|H|HISTORY|days to take into account for mkdox recent|7
+option|P|PORT|http port for serve|8000
+choice|1|action|action to perform|new,serve,build,subpages,recent,check,env,update
 param|?|input|foldername for mkdocs project
 " -v -e '^#' -e '^\s*$'
 }
@@ -133,7 +134,23 @@ function Script:main() {
     else
       find "${input:-.}" -type f -name '*.md'
     fi |
-      grep -v 'index.md' |
+      grep -v 'VERSION.md' |
+      sort |
+      while read -r md_file ; do
+        md_title=$(find_md_title "$md_file")
+        [[ -n "$md_title" ]] && echo "* [$md_title]($md_file)"
+      done
+    ;;
+
+  recent)
+    #TIP: use «$script_prefix recent» to quickly list all pages changed in last N days
+    #TIP:> $script_prefix recent faq/services
+    local md_title
+    if [[ "$RECURSIVE" -eq 0 ]]; then
+      find "${input:-.}" -maxdepth 1 -type f -mtime "-$HISTORY" -name '*.md'
+    else
+      find "${input:-.}" -type f -mtime "-$HISTORY" -name '*.md'
+    fi |
       grep -v 'VERSION.md' |
       sort |
       while read -r md_file ; do
