@@ -132,10 +132,12 @@ function Script:main() {
     else
       find "${input:-.}" -type f -name '*.md'
     fi \
+    | grep -v 'index.md' \
     | sort \
     | awk '
     function basename(file) {
       sub(".*/", "", file)
+      gsub(".md","", file)
       return file
     }
 
