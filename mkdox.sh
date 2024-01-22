@@ -84,25 +84,25 @@ function Script:main() {
     file=mkdocs.yml
     template="$script_install_folder/templates/$file"
     actual="$folder/$file"
-    filesize=$(< "$actual" wc -c)
-    if [[ $filesize -eq 19 ]] ; then
+    filesize=$(wc <"$actual" -c)
+    if [[ $filesize -eq 19 ]]; then
       ## minimal mkdocs.yml as installed by docker image
       IO:print "Create $actual ..."
-      < "$template" awk -v SITE_NAME="$SITE_NAME" "{
+      awk <"$template" -v SITE_NAME="$SITE_NAME" "{
       gsub(/{SITE_NAME}/,SITE_NAME);
       print
-      }" > "$actual"
+      }" >"$actual"
     fi
 
-    for template in "$script_install_folder/templates/docs"/*.md ; do
+    for template in "$script_install_folder/templates/docs"/*.md; do
       file="$(basename "$template")"
       actual="$folder/docs/$file"
-      if [[ ! -f "$actual" ]] ; then
+      if [[ ! -f "$actual" ]]; then
         IO:print "Create $actual ..."
-        < "$template" awk -v SITE_NAME="$SITE_NAME" "{
+        awk <"$template" -v SITE_NAME="$SITE_NAME" "{
         gsub(/{SITE_NAME}/,SITE_NAME);
         print
-        }" > "$actual"
+        }" >"$actual"
       fi
     done
     IO:success "New Mkdocs Material project created in $(realpath "$folder")"
@@ -127,23 +127,18 @@ function Script:main() {
   subpages)
     #TIP: use «$script_prefix subpages» to quickly list all subpages
     #TIP:> $script_prefix subpages faq/services
-    if [[ "$RECURSIVE" -eq 0 ]] ; then
+    if [[ "$RECURSIVE" -eq 0 ]]; then
       find "${input:-.}" -maxdepth 1 -type f -name '*.md'
     else
       find "${input:-.}" -type f -name '*.md'
-    fi \
-    | grep -v 'index.md' \
-    | sort \
-    | awk '
-    function basename(file) {
-      sub(".*/", "", file)
-      gsub(".md","", file)
-      return file
-    }
-
-    {
-    print "* [" basename($1) "](" $1 ")"
-    }'
+    fi |
+      grep -v 'index.md' |
+      grep -v 'VERSION.md' |
+      sort |
+      while read -r md_file ; do
+        title=$(find_md_title "$md_file")
+        [[ -n "$title" ]] && echo "* [$title]($md_file)"
+      done
     ;;
 
   check | env)
@@ -175,6 +170,20 @@ function Script:main() {
 ## Put your helper scripts here
 #####################################################################
 
+function find_md_title() {
+  local file="$1"
+  local from_filename from_h1 from_front
+  from_filename=$(basename "$file" .md)
+  from_h1=$(grep -m 1 '^# ' "$file" | sed 's/^# //' | head -1)
+  from_front=$(grep -m 1 '^title: ' "$file" | sed 's/^title: //' | head -1)
+  if [[ -n "$from_h1" ]]; then
+    Str:title "$from_h1" " "
+  elif [[ -n "$from_front" ]]; then
+    Str:title "$from_front" " "
+  else
+    Str:title "$from_filename"
+  fi
+}
 #####################################################################
 ################### DO NOT MODIFY BELOW THIS LINE ###################
 #####################################################################

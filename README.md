@@ -6,7 +6,7 @@
 ![GH License](https://img.shields.io/github/license/pforret/mkdox)
 [![basher install](https://img.shields.io/badge/basher-install-white?logo=gnu-bash&style=flat)](https://www.basher.it/package/)
 
-# mkdox
+# pforret/mkdox
 
 ![](assets/unsplash.documents.jpg)
 
