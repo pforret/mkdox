@@ -127,7 +127,6 @@ function Script:main() {
   subpages)
     #TIP: use «$script_prefix subpages» to quickly list all subpages
     #TIP:> $script_prefix subpages faq/services
-    IO:print "$RECURSIVE subpages"
     if [[ "$RECURSIVE" -eq 0 ]] ; then
       find "${input:-.}" -maxdepth 1 -type f -name '*.md'
     else
