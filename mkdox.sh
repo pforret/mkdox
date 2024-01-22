@@ -127,6 +127,7 @@ function Script:main() {
   subpages)
     #TIP: use «$script_prefix subpages» to quickly list all subpages
     #TIP:> $script_prefix subpages faq/services
+    local md_title
     if [[ "$RECURSIVE" -eq 0 ]]; then
       find "${input:-.}" -maxdepth 1 -type f -name '*.md'
     else
@@ -136,8 +137,8 @@ function Script:main() {
       grep -v 'VERSION.md' |
       sort |
       while read -r md_file ; do
-        title=$(find_md_title "$md_file")
-        [[ -n "$title" ]] && echo "* [$title]($md_file)"
+        md_title=$(find_md_title "$md_file")
+        [[ -n "$md_title" ]] && echo "* [$md_title]($md_file)"
       done
     ;;
 
@@ -177,11 +178,11 @@ function find_md_title() {
   from_h1=$(grep -m 1 '^# ' "$file" | sed 's/^# //' | head -1)
   from_front=$(grep -m 1 '^title: ' "$file" | sed 's/^title: //' | head -1)
   if [[ -n "$from_h1" ]]; then
-    Str:title "$from_h1" " "
+    Str:title "$from_h1" " " | head -1
   elif [[ -n "$from_front" ]]; then
-    Str:title "$from_front" " "
+    Str:title "$from_front" " " | head -1
   else
-    Str:title "$from_filename"
+    Str:title "$from_filename"| head -1
   fi
 }
 #####################################################################
