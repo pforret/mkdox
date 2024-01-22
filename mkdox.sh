@@ -178,11 +178,11 @@ function find_md_title() {
   from_h1=$(grep -m 1 '^# ' "$file" | sed 's/^# //' | head -1)
   from_front=$(grep -m 1 '^title: ' "$file" | sed 's/^title: //' | head -1)
   if [[ -n "$from_h1" ]]; then
-    Str:title "$from_h1" " " | head -1
+    Str:title "$from_h1" " "  | sed 's/\r$//'
   elif [[ -n "$from_front" ]]; then
-    Str:title "$from_front" " " | head -1
+    Str:title "$from_front" " " | sed 's/\r$//'
   else
-    Str:title "$from_filename"| head -1
+    Str:title "$from_filename"
   fi
 }
 #####################################################################
