@@ -56,7 +56,7 @@ option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
-choice|1|action|action to perform|new,serve,build,subpages,recent,check,env,update
+choice|1|action|action to perform|new,serve,build,recent,subpages,tree,check,env,update
 param|?|input|foldername for mkdocs project
 " -v -e '^#' -e '^\s*$'
 }
@@ -135,11 +135,31 @@ function Script:main() {
     else
       find "${input:-.}" -type f -name '*.md'
     fi |
+      sed 's|^./||' |
       grep -v 'VERSION.md' |
       sort |
-      while read -r md_file ; do
+      while read -r md_file; do
         md_title=$(find_md_title "$md_file")
         [[ -n "$md_title" ]] && echo "* [$md_title]($md_file)"
+      done
+    ;;
+
+  tree)
+    #TIP: use «$script_prefix subpages» to quickly list all subpages
+    #TIP:> $script_prefix subpages faq/services
+    local md_title prefix
+    if [[ "$RECURSIVE" -eq 0 ]]; then
+      find "${input:-.}" -maxdepth 1 -type f -name '*.md'
+    else
+      find "${input:-.}" -type f -name '*.md'
+    fi |
+      sed 's|^./||' |
+      grep -v 'VERSION.md' |
+      sort |
+      while read -r md_file; do
+        md_title=$(find_md_title "$md_file")
+        prefix=$(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr;"}')
+        [[ -n "$md_title" ]] && echo "* [$prefix$md_title]($md_file)"
       done
     ;;
 
@@ -152,9 +172,10 @@ function Script:main() {
     else
       find "${input:-.}" -type f -mtime "-$HISTORY" -name '*.md'
     fi |
+      sed 's|^./||' |
       grep -v 'VERSION.md' |
       sort |
-      while read -r md_file ; do
+      while read -r md_file; do
         md_title=$(find_md_title "$md_file")
         [[ -n "$md_title" ]] && echo "* [$md_title]($md_file)"
       done
@@ -196,7 +217,7 @@ function find_md_title() {
   from_h1=$(grep -m 1 '^# ' "$file" | sed 's/^# //' | head -1)
   from_front=$(grep -m 1 '^title: ' "$file" | sed 's/^title: //' | head -1)
   if [[ -n "$from_h1" ]]; then
-    Str:title "$from_h1" " "  | sed 's/\r$//'
+    Str:title "$from_h1" " " | sed 's/\r$//'
   elif [[ -n "$from_front" ]]; then
     Str:title "$from_front" " " | sed 's/\r$//'
   else
