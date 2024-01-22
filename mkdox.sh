@@ -158,8 +158,8 @@ function Script:main() {
       sort |
       while read -r md_file; do
         md_title=$(find_md_title "$md_file")
-        prefix=$(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr;"}')
-        [[ -n "$md_title" ]] && echo "* [$prefix$md_title]($md_file)"
+        prefix=$(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr; "}')
+        [[ -n "$md_title" ]] && echo "* [ ] [$prefix$md_title]($md_file)"
       done
     ;;
 
