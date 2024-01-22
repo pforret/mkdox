@@ -55,6 +55,7 @@ option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|P|PORT|http port for serve|8000
+option|S|SECS|seconds to wait for launching a browser|5
 choice|1|action|action to perform|new,serve,build,subpages,recent,check,env,update
 param|?|input|foldername for mkdocs project
 " -v -e '^#' -e '^\s*$'
@@ -119,7 +120,7 @@ function Script:main() {
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
     (
-      IO:countdown 5 "Open http://localhost:$PORT ..."
+      IO:countdown "$SECS" "Open http://localhost:$PORT ..."
       explorer.exe "http://localhost:$PORT"
     ) &
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
