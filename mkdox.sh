@@ -49,11 +49,12 @@ flag|h|help|show usage
 flag|q|quiet|no output
 flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
+flag|R|RECURSIVE|for mkdox subpages
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|P|PORT|http port for serve|8000
 option|D|DOCKER|docker image to use|pforret/mkdox-material
-choice|1|action|action to perform|new,serve,build,check,env,update
+choice|1|action|action to perform|new,serve,build,subpages,check,env,update
 param|?|input|foldername for mkdocs project
 " -v -e '^#' -e '^\s*$'
 }
@@ -121,6 +122,27 @@ function Script:main() {
       explorer.exe "http://localhost:$PORT"
     ) &
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
+    ;;
+
+  subpages)
+    #TIP: use «$script_prefix subpages» to quickly list all subpages
+    #TIP:> $script_prefix subpages faq/services
+    IO:print "$RECURSIVE subpages"
+    if [[ "$RECURSIVE" -eq 0 ]] ; then
+      find "${input:-.}" -maxdepth 1 -type f -name '*.md'
+    else
+      find "${input:-.}" -type f -name '*.md'
+    fi \
+    | sort \
+    | awk '
+    function basename(file) {
+      sub(".*/", "", file)
+      return file
+    }
+
+    {
+    print "* [" basename($1) "](" $1 ")"
+    }'
     ;;
 
   check | env)
