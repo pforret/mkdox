@@ -129,6 +129,7 @@ function Script:main() {
   subpages)
     #TIP: use «$script_prefix subpages» to quickly list all subpages
     #TIP:> $script_prefix subpages faq/services
+    #TIP:> $script_prefix -R subpages >> index.md
     local md_title
     if [[ "$RECURSIVE" -eq 0 ]]; then
       find "${input:-.}" -maxdepth 1 -type f -name '*.md'
@@ -145,8 +146,9 @@ function Script:main() {
     ;;
 
   tree)
-    #TIP: use «$script_prefix subpages» to quickly list all subpages
-    #TIP:> $script_prefix subpages faq/services
+    #TIP: use «$script_prefix tree» to quickly list all subpages in a tree structure
+    #TIP:> $script_prefix tree > index.md
+    #TIP:> $script_prefix -R tree > index.md
     local md_title prefix
     if [[ "$RECURSIVE" -eq 0 ]]; then
       find "${input:-.}" -maxdepth 1 -type f -name '*.md'
@@ -165,7 +167,8 @@ function Script:main() {
 
   recent)
     #TIP: use «$script_prefix recent» to quickly list all pages changed in last N days
-    #TIP:> $script_prefix recent faq/services
+    #TIP:> $script_prefix recent >> changes.md
+    #TIP:> $script_prefix -H 2 recent | sed 's|* |\&bull; |' >> changes.md
     local md_title
     if [[ "$RECURSIVE" -eq 0 ]]; then
       find "${input:-.}" -maxdepth 1 -type f -mtime "-$HISTORY" -name '*.md'
