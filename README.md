@@ -110,6 +110,11 @@ or with `git`
 	$ git clone https://github.com/pforret/mkdox.git
 	$ cd mkdox
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/pforret/mkdox.svg?variant=adaptive)](https://starchart.cc/pforret/mkdox)
+
+
 ## 📝 Acknowledgements
 
 * script created with [bashew](https://github.com/pforret/bashew)
