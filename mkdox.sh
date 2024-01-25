@@ -161,7 +161,7 @@ function Script:main() {
           output_file=$(basename "$output_file" .md).md
 
           [[ -f "$pre_file" ]] && cat "$pre_file"
-          cat
+          grep -v "$output_file"
           [[ -f "$post_file" ]] && cat "$post_file"
         }  > "$output_file"
       else
