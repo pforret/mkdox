@@ -49,15 +49,18 @@ flag|h|help|show usage
 flag|q|quiet|no output
 flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
-flag|R|RECURSIVE|for mkdox subpages
+flag|Q|SHORT|include short contents of page (for mkdox toc)
+flag|R|RECURSIVE|also list subfolders (for mkdox toc)
+flag|T|TREE|list as tree (for mkdox toc)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
-choice|1|action|action to perform|new,serve,build,recent,subpages,tree,check,env,update
-param|?|input|foldername for mkdocs project
+choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
+param|?|input|input folder name
+param|?|output|output file name
 " -v -e '^#' -e '^\s*$'
 }
 
@@ -126,43 +129,44 @@ function Script:main() {
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
     ;;
 
-  subpages)
-    #TIP: use «$script_prefix subpages» to quickly list all subpages
-    #TIP:> $script_prefix subpages faq/services
-    #TIP:> $script_prefix -R subpages >> index.md
+  toc)
+    #TIP: use «$script_prefix toc <folder> <file>» to create Table Of Contents for all Markdown files in folder
+    #TIP:> $script_prefix toc faq/services
+    #TIP:> $script_prefix -R toc . index
     local md_title
+    local root_folder="${input:-.}"
+    local output_file="$output"
     if [[ "$RECURSIVE" -eq 0 ]]; then
-      find "${input:-.}" -maxdepth 1 -type f -name '*.md'
+      find "$root_folder" -maxdepth 1 -type f -name '*.md'
     else
-      find "${input:-.}" -type f -name '*.md'
+      find "$root_folder" -type f -name '*.md'
     fi |
       sed 's|^./||' |
       grep -v 'VERSION.md' |
       sort |
       while read -r md_file; do
         md_title=$(find_md_title "$md_file")
-        [[ -n "$md_title" ]] && echo "* [$md_title]($md_file)"
-      done
-    ;;
+        md_short=""
+        [[ "$SHORT" == 1 ]] && md_short=$(find_md_short "$md_file")
+        md_pre=""
+        if [[ "$TREE" == 1 ]]; then
+          md_pre="[ ] $(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr; "}')"
+        fi
+        [[ -n "$md_title" ]] && echo "* $md_pre [$md_title]($md_file) $md_short"
+      done |
+      if [[ -n "$output_file" ]] ; then
+        {
+          pre_file=$(basename "$output_file" .md).pre
+          post_file=$(basename "$output_file" .md).post
+          output_file=$(basename "$output_file" .md).md
 
-  tree)
-    #TIP: use «$script_prefix tree» to quickly list all subpages in a tree structure
-    #TIP:> $script_prefix tree > index.md
-    #TIP:> $script_prefix -R tree > index.md
-    local md_title prefix
-    if [[ "$RECURSIVE" -eq 0 ]]; then
-      find "${input:-.}" -maxdepth 1 -type f -name '*.md'
-    else
-      find "${input:-.}" -type f -name '*.md'
-    fi |
-      sed 's|^./||' |
-      grep -v 'VERSION.md' |
-      sort |
-      while read -r md_file; do
-        md_title=$(find_md_title "$md_file")
-        prefix=$(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr; "}')
-        [[ -n "$md_title" ]] && echo "* [ ] [$prefix$md_title]($md_file)"
-      done
+          [[ -f "$pre_file" ]] && cat "$pre_file"
+          cat
+          [[ -f "$post_file" ]] && cat "$post_file"
+        }  > "$output_file"
+      else
+        cat
+      fi
     ;;
 
   recent)
@@ -227,6 +231,15 @@ function find_md_title() {
     Str:title "$from_filename"
   fi
 }
+
+function find_md_short() {
+  local file="$1"
+  local words="${2:-15}"
+  local from_filename from_h1 from_front
+  < "$file" grep -v '^[#!\[]' | tr '\n' ' ' | sed 's|[^a-zA-Z0-9@. ]| |g' | tr -s ' ' | cut -d' ' -f"1-$words"
+}
+
+
 #####################################################################
 ################### DO NOT MODIFY BELOW THIS LINE ###################
 #####################################################################
