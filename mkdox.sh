@@ -58,7 +58,7 @@ option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
-option|G|GIT|command to push git (setver ap or git push)|
+option|G|GITPUSH|command to push git (setver ap or git push)|
 choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
@@ -122,17 +122,16 @@ function Script:main() {
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
     local git_message
-    if [[ -d .git/ ]]; then
+    if [[ -n "$GITPUSH" ]]; then
       git add docs/
       git add mkdocs.yml
       git add site/
-      git_message="CHANGES: $(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-50)"
-      IO:debug "Git commit: '$git_message'"
-      git commit -m "$git_message"
-      if [[ -n "$GIT" ]]; then
-        $GIT
-      else
-        IO:debug "Run git push or used option -G 'git push' to push to Git repo after build"
+      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-50)"
+      if [[ -n "$git_message" ]]; then
+        IO:debug "Git commit: '$git_message'"
+        git commit -m "CHANGES: $git_message"
+        IO:debug "Git push: $GITPUSH"
+        $GITPUSH
       fi
     else
       IO:debug "No .git folder detected - skipping git commit/push"
