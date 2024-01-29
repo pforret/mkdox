@@ -58,6 +58,7 @@ option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
+option|G|GIT|command to push git (setver ap or git push)|
 choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
@@ -119,6 +120,17 @@ function Script:main() {
     #TIP:> $script_prefix build
     docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
     docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
+    local git_message
+    if [[ -d .git/ ]] ; then
+      git add docs/
+      git add mkdocs.yml
+      git add site/
+      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs)"
+      git commit -m "$git_message"
+      [[ -n "$GIT" ]] && $GIT
+    else
+      IO:debug "No .git folder detected - skipping git commit/push"
+    fi
     ;;
 
   serve)
