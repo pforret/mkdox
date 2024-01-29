@@ -119,14 +119,15 @@ function Script:main() {
     #TIP: use «$script_prefix build» to create static HTML site in _site folder
     #TIP:> $script_prefix build
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
     local git_message
     if [[ -d .git/ ]]; then
       git add docs/
       git add mkdocs.yml
       git add site/
-      git_message="CHANGES: $(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-99)"
-      IO:debug "Git commit message: $git_message"
+      git_message="CHANGES: $(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-50)"
+      IO:debug "Git commit: '$git_message'"
       git commit -m "$git_message"
       if [[ -n "$GIT" ]]; then
         $GIT
