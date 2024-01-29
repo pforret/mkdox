@@ -78,7 +78,7 @@ function Script:main() {
   new)
     #TIP: use «$script_prefix new» to create new Mkdocs Material project
     #TIP:> $script_prefix new <name>
-    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
+    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     folder="${input:-.}"
     IO:announce "Create new Mkdocs Material project in $folder"
     [[ ! -d "$folder" ]] && mkdir "$folder"
@@ -118,16 +118,21 @@ function Script:main() {
   build)
     #TIP: use «$script_prefix build» to create static HTML site in _site folder
     #TIP:> $script_prefix build
-    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
+    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
     local git_message
-    if [[ -d .git/ ]] ; then
+    if [[ -d .git/ ]]; then
       git add docs/
       git add mkdocs.yml
       git add site/
-      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs)"
+      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-99)"
+      IO:debug "Git commit message: $git_message"
       git commit -m "$git_message"
-      [[ -n "$GIT" ]] && $GIT
+      if [[ -n "$GIT" ]]; then
+        $GIT
+      else
+        IO:debug "Run git push or used option -G 'git push' to push to Git repo after build"
+      fi
     else
       IO:debug "No .git folder detected - skipping git commit/push"
     fi
@@ -136,8 +141,8 @@ function Script:main() {
   serve)
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
-    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
-   (
+    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    (
       IO:countdown "$SECS" "Open http://localhost:$PORT ..."
       explorer.exe "http://localhost:$PORT"
     ) &
@@ -169,7 +174,7 @@ function Script:main() {
         fi
         [[ -n "$md_title" ]] && echo "* $md_pre [$md_title]($md_file) $md_short"
       done |
-      if [[ -n "$output_file" ]] ; then
+      if [[ -n "$output_file" ]]; then
         {
           pre_file=$(basename "$output_file" .md).pre
           post_file=$(basename "$output_file" .md).post
@@ -178,7 +183,7 @@ function Script:main() {
           [[ -f "$pre_file" ]] && cat "$pre_file"
           grep -v "$output_file"
           [[ -f "$post_file" ]] && cat "$post_file"
-        }  > "$output_file"
+        } >"$output_file"
       else
         cat
       fi
@@ -251,9 +256,8 @@ function find_md_short() {
   local file="$1"
   local words="${2:-15}"
   local from_filename from_h1 from_front
-  < "$file" grep -v '^[#!\[]' | tr '\n' ' ' | sed 's|[^a-zA-Z0-9@. ]| |g' | tr -s ' ' | cut -d' ' -f"1-$words"
+  grep <"$file" -v '^[#!\[]' | tr '\n' ' ' | sed 's|[^a-zA-Z0-9@. ]| |g' | tr -s ' ' | cut -d' ' -f"1-$words"
 }
-
 
 #####################################################################
 ################### DO NOT MODIFY BELOW THIS LINE ###################
