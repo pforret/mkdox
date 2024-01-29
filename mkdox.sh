@@ -77,7 +77,7 @@ function Script:main() {
   new)
     #TIP: use «$script_prefix new» to create new Mkdocs Material project
     #TIP:> $script_prefix new <name>
-    Os:require "docker"
+    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
     folder="${input:-.}"
     IO:announce "Create new Mkdocs Material project in $folder"
     [[ ! -d "$folder" ]] && mkdir "$folder"
@@ -117,14 +117,14 @@ function Script:main() {
   build)
     #TIP: use «$script_prefix build» to create static HTML site in _site folder
     #TIP:> $script_prefix build
-    Os:require "docker"
+    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
     docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
     ;;
 
   serve)
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
-    Os:require "docker"
+    docker -v > /dev/null || IO:die "Docker is not installed or not yet started"
    (
       IO:countdown "$SECS" "Open http://localhost:$PORT ..."
       explorer.exe "http://localhost:$PORT"
