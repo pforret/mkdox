@@ -49,9 +49,11 @@ flag|h|help|show usage
 flag|q|quiet|no output
 flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
+flag|G|GITPUSH|push to git after commit
 flag|Q|SHORT|include short contents of page (for mkdox toc)
 flag|R|RECURSIVE|also list subfolders (for mkdox toc)
 flag|T|TREE|list as tree (for mkdox toc)
+flag|X|EXPORT|export to PDF (for mkdox build)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|D|DOCKER|docker image to use|pforret/mkdox-material
@@ -59,7 +61,6 @@ option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
-option|G|GITPUSH|command to push git (setver ap or git push)|
 choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
@@ -121,7 +122,8 @@ function Script:main() {
     #TIP:> $script_prefix build
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
-    docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
+    ENABLE_PDF_EXPORT="$EXPORT" docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
+
     local git_message
     if [[ -n "$GITPUSH" ]]; then
       git add docs/
@@ -133,7 +135,7 @@ function Script:main() {
         IO:debug "Git commit: '$git_message'"
         git commit -m "CHANGES: $git_message"
         IO:debug "Git push: $GITPUSH"
-        $GITPUSH
+        git push
       fi
     else
       IO:debug "No .git folder detected - skipping git commit/push"
