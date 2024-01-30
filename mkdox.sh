@@ -122,7 +122,7 @@ function Script:main() {
     #TIP:> $script_prefix build
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
-    ENABLE_PDF_EXPORT="$EXPORT" docker run --rm -it -v "${PWD}":/docs "$DOCKER" build
+    docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
 
     local git_message
     if [[ -n "$GITPUSH" ]]; then
