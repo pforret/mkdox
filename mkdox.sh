@@ -126,7 +126,7 @@ function Script:main() {
       git add docs/
       git add mkdocs.yml
       git add site/
-      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-50)"
+      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-99)"
       if [[ -n "$git_message" ]]; then
         IO:debug "Git commit: '$git_message'"
         git commit -m "CHANGES: $git_message"
