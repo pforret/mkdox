@@ -56,6 +56,7 @@ option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|D|DOCKER|docker image to use|pforret/mkdox-material
 option|H|HISTORY|days to take into account for mkdox recent|7
+option|L|LENGTH|max commit message length|99
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|5
 option|G|GITPUSH|command to push git (setver ap or git push)|
@@ -79,7 +80,7 @@ function Script:main() {
     #TIP: use «$script_prefix new» to create new Mkdocs Material project
     #TIP:> $script_prefix new <name>
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
-    folder="${input:-.}"
+    local folder="${input:-.}"
     IO:announce "Create new Mkdocs Material project in $folder"
     [[ ! -d "$folder" ]] && mkdir "$folder"
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
@@ -126,7 +127,8 @@ function Script:main() {
       git add docs/
       git add mkdocs.yml
       git add site/
-      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut -c1-99)"
+        # shellcheck disable=SC2153
+      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut "-c1-$LENGTH")"
       if [[ -n "$git_message" ]]; then
         IO:debug "Git commit: '$git_message'"
         git commit -m "CHANGES: $git_message"
@@ -175,15 +177,17 @@ function Script:main() {
         [[ -n "$md_title" ]] && echo "* $md_pre [$md_title]($md_file) $md_short"
       done |
       if [[ -n "$output_file" ]]; then
+        # shellcheck disable=SC2094
         {
           pre_file=$(basename "$output_file" .md).pre
           post_file=$(basename "$output_file" .md).post
           output_file=$(basename "$output_file" .md).md
 
           [[ -f "$pre_file" ]] && cat "$pre_file"
+          # shellcheck disable=SC2094
           grep -v "$output_file"
           [[ -f "$post_file" ]] && cat "$post_file"
-        } >"$output_file"
+        } > "$output_file"
       else
         cat
       fi
