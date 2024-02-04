@@ -124,21 +124,25 @@ function Script:main() {
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
 
-    local git_message
-    if [[ -n "$GITPUSH" ]]; then
-      git add docs/
-      git add mkdocs.yml
-      git add site/
-        # shellcheck disable=SC2153
-      git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut "-c1-$LENGTH")"
-      if [[ -n "$git_message" ]]; then
-        IO:debug "Git commit: '$git_message'"
-        git commit -m "CHANGES: $git_message"
-        IO:debug "Git push: $GITPUSH"
-        git push
-      fi
-    else
+    if [[ ! -d .git ]]; then
       IO:debug "No .git folder detected - skipping git commit/push"
+      Script:exit
+    fi
+    if [[ -z "$GITPUSH" ]]; then
+      IO:debug "No GITPUSH option specified - skipping git commit/push"
+      Script:exit
+    fi
+    local git_message
+    git add docs/
+    git add mkdocs.yml
+    git add site/
+    # shellcheck disable=SC2153
+    git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut "-c1-$LENGTH")"
+    if [[ -n "$git_message" ]]; then
+      IO:debug "Git commit: '$git_message'"
+      git commit -m "CHANGES: $git_message"
+      IO:debug "Git push: $GITPUSH"
+      git push
     fi
     ;;
 
@@ -147,8 +151,13 @@ function Script:main() {
     #TIP:> $script_prefix serve
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     (
-      IO:countdown "$SECS" "Open http://localhost:$PORT ..."
-      explorer.exe "http://localhost:$PORT"
+      IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
+      case $os_name in
+      Windows) explorer.exe "http://localhost:$PORT" ;;
+      macOS) open "http://localhost:$PORT" ;;
+      *) xdg-open "http://localhost:$PORT" ;;
+      esac
+
     ) &
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
     ;;
@@ -189,7 +198,7 @@ function Script:main() {
           # shellcheck disable=SC2094
           grep -v "$output_file"
           [[ -f "$post_file" ]] && cat "$post_file"
-        } > "$output_file"
+        } >"$output_file"
       else
         cat
       fi
