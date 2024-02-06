@@ -154,12 +154,15 @@ function Script:main() {
       IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
       if [[ -n $(command -v explorer.exe) ]] ; then
         # Windows or WSL on Windows
+        IO:print "Open http://localhost:$PORT in browser (Windows)"
         explorer.exe "http://localhost:$PORT"
       elif [[ -n $(command -v open) ]] ; then
         # macOS
+        IO:print "Open http://localhost:$PORT in browser (macOS)"
         open "http://localhost:$PORT"
       elif [[ -n $(command -v xdg-open) ]] ; then
         # Linux
+        IO:print "Open http://localhost:$PORT in browser (Linux)"
         xdg-open "http://localhost:$PORT"
       else
         # unknown
