@@ -158,9 +158,12 @@ function Script:main() {
       elif [[ -n $(command -v open) ]] ; then
         # macOS
         open "http://localhost:$PORT"
-      else
+      elif [[ -n $(command -v xdg-open) ]] ; then
         # Linux
         xdg-open "http://localhost:$PORT"
+      else
+        # unknown
+        IO:alert "Could not open browser"
       fi
 
     ) &
