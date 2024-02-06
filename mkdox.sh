@@ -152,11 +152,16 @@ function Script:main() {
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     (
       IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
-      case $os_name in
-      Windows) explorer.exe "http://localhost:$PORT" ;;
-      macOS) open "http://localhost:$PORT" ;;
-      *) xdg-open "http://localhost:$PORT" ;;
-      esac
+      if [[ -n $(command -v explorer.exe) ]] ; then
+        # Windows or WSL on Windows
+        explorer.exe "http://localhost:$PORT"
+      elif [[ -n $(command -v open) ]] ; then
+        # macOS
+        open "http://localhost:$PORT"
+      else
+        # Linux
+        xdg-open "http://localhost:$PORT"
+      fi
 
     ) &
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
