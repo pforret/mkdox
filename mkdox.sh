@@ -75,6 +75,7 @@ function Script:main() {
   IO:log "[$script_basename] $script_version started"
 
   Os:require "awk"
+  Os:require "docker"
 
   case "${action,,}" in
   new)

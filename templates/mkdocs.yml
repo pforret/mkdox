@@ -53,7 +53,24 @@ markdown_extensions:
 plugins:
   - search
   - awesome-pages
-  - with-pdf
+  - with-pdf:
+      # author: {SITE_NAME}
+      # copyright: "&copy: 2024 {SITE_NAME}"
+      # cover_subtitle: Your Subtitle
+      # cover_logo: img/cover.jpg
+      toc_level: 3
+      #ordered_chapter_level: 2
+      #excludes_children:
+      #    - 'release-notes/:upgrading'
+      #    - 'release-notes/:changelog'
+      #
+      #exclude_pages:
+      #    - 'bugs/'
+      #    - 'appendix/contribute/'
+      #two_columns_level: 3
+      #
+      output_path: pdf/document.pdf
+      enabled_if_env: ENABLE_PDF_EXPORT
 
 copyright: Copyright &copy; 2024 {SITE_NAME}
 
