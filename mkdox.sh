@@ -21,28 +21,6 @@ install_package=""
 temp_files=()
 
 function Option:config() {
-  ### Change the next lines to reflect which flags/options/parameters you need
-  ### flag:   switch a flag 'on' / no value specified
-  ###     flag|<short>|<long>|<description>
-  ###     e.g. "-v" or "--verbose" for verbose output / default is always 'off'
-  ###     will be available as $<long> in the script e.g. $verbose
-  ### option: set an option / 1 value specified
-  ###     option|<short>|<long>|<description>|<default>
-  ###     e.g. "-e <extension>" or "--extension <extension>" for a file extension
-  ###     will be available a $<long> in the script e.g. $extension
-  ### list: add an list/array item / 1 value specified
-  ###     list|<short>|<long>|<description>| (default is ignored)
-  ###     e.g. "-u <user1> -u <user2>" or "--user <user1> --user <user2>"
-  ###     will be available a $<long> array in the script e.g. ${user[@]}
-  ### param:  comes after the options
-  ###     param|<type>|<long>|<description>
-  ###     <type> = 1 for single parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = ? for optional parameters - e.g. param|1|output expects 1 parameter <output>
-  ###     <type> = n for list parameter    - e.g. param|n|inputs expects <input1> <input2> ... <input99>
-  ###     will be available as $<long> in the script after option/param parsing
-  ### choice:  is like a param, but when there are limited options
-  ###     choice|<type>|<long>|<description>|choice1,choice2,...
-  ###     <type> = 1 for single parameters - e.g. param|1|output expects 1 parameter <output>
   grep <<<"
 #commented lines will be filtered
 flag|h|help|show usage
@@ -50,6 +28,7 @@ flag|q|quiet|no output
 flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
 flag|G|GITPUSH|push to git after commit
+flag|I|INDEX|build index.md if index.pre/.post present (for mkdox build)
 flag|Q|SHORT|include short contents of page (for mkdox toc)
 flag|R|RECURSIVE|also list subfolders (for mkdox toc)
 flag|T|TREE|list as tree (for mkdox toc)
@@ -57,10 +36,11 @@ flag|X|EXPORT|export to PDF (for mkdox build)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
 option|D|DOCKER|docker image to use|pforret/mkdox-material
+option|E|TITLE|set site title|
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
 option|P|PORT|http port for serve|8000
-option|S|SECS|seconds to wait for launching a browser|5
+option|S|SECS|seconds to wait for launching a browser|10
 choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
@@ -88,33 +68,38 @@ function Script:main() {
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
     IO:print "Run 'mkdocs new' via Docker"
     docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder"
+    folder_path=$(realpath "$folder")
     local file template actual filesize SITE_NAME
     SITE_NAME="Mkdocs $(basename "$folder")"
+    [[ -n "$TITLE" ]] && SITE_NAME="$TITLE"
 
-    file=mkdocs.yml
-    template="$script_install_folder/templates/$file"
-    actual="$folder/$file"
-    filesize=$(wc <"$actual" -c)
-    if [[ $filesize -eq 19 ]]; then
-      ## minimal mkdocs.yml as installed by docker image
-      IO:print "Create $actual ..."
-      awk <"$template" -v SITE_NAME="$SITE_NAME" "{
-      gsub(/{SITE_NAME}/,SITE_NAME);
-      print
-      }" >"$actual"
-    fi
-
-    for template in "$script_install_folder/templates/docs"/*.md; do
-      file="$(basename "$template")"
-      actual="$folder/docs/$file"
-      if [[ ! -f "$actual" ]]; then
-        IO:print "Create $actual ..."
-        awk <"$template" -v SITE_NAME="$SITE_NAME" "{
+    (
+      cd "$script_install_folder/templates/" || exit
+      # first just create the folders
+      find . -type d -exec mkdir -p -- "$folder_path/{}" \;
+      # now copy each template file while
+      find . -type f \
+      | while read -r template; do
+        file="$(echo "$template" | sed 's|^\./||')"
+        IO:print "Create $file ..."
+        actual="$folder_path/$file"
+        CREATION_DATE="$(date '+%Y-%m-%d')"
+        CREATION_YEAR="$(date '+%Y')"
+        USERNAME="$(whoami)"
+        <"$template" awk \
+        -v SITE_NAME="$SITE_NAME" \
+        -v CREATION_DATE="$CREATION_DATE" \
+        -v CREATION_YEAR="$CREATION_YEAR" \
+        -v USERNAME="$USERNAME" \
+        '{
+        gsub(/{CREATION_DATE}/,CREATION_DATE);
+        gsub(/{CREATION_YEAR}/,CREATION_YEAR);
         gsub(/{SITE_NAME}/,SITE_NAME);
-        print
-        }" >"$actual"
-      fi
-    done
+        gsub(/{USERNAME}/,USERNAME);
+        print }' >"$actual"
+      done
+    )
+
     IO:success "New Mkdocs Material project created in $(realpath "$folder")"
     ;;
 
@@ -122,6 +107,26 @@ function Script:main() {
     #TIP: use «$script_prefix build» to create static HTML site in _site folder
     #TIP:> $script_prefix build
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
+    if ((INDEX)); then
+      # create the index.md file in any folder that has a index.pre or index.post file
+      pushd "docs" >/dev/null || IO:die "Can't find folder templates/docs"
+      (
+        find . -name "index.pre"
+        find . -name "index.post"
+      ) |
+        awk '{ gsub( /\/[a-z.]*$/,"",$0 ); print $0 }' |
+        sort -u |
+        while read -r folder; do
+          IO:print "Create index.md for $folder ..."
+          pushd "$folder" >/dev/null || exit
+          mkdox -R -T toc . index.md
+          popd >/dev/null || exit
+        done
+
+      popd >/dev/null || IO:die "Can't return to original folder"
+      IO:die "indexes built"
+    fi
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
 
@@ -150,18 +155,19 @@ function Script:main() {
   serve)
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
+    [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
     (
       IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
-      if [[ -n $(command -v explorer.exe) ]] ; then
+      if [[ -n $(command -v explorer.exe) ]]; then
         # Windows or WSL on Windows
         IO:print "Open http://localhost:$PORT in browser (Windows)"
         explorer.exe "http://localhost:$PORT"
-      elif [[ -n $(command -v open) ]] ; then
+      elif [[ -n $(command -v open) ]]; then
         # macOS
         IO:print "Open http://localhost:$PORT in browser (macOS)"
         open "http://localhost:$PORT"
-      elif [[ -n $(command -v xdg-open) ]] ; then
+      elif [[ -n $(command -v xdg-open) ]]; then
         # Linux
         IO:print "Open http://localhost:$PORT in browser (Linux)"
         xdg-open "http://localhost:$PORT"
@@ -191,9 +197,9 @@ function Script:main() {
       sort |
       while read -r md_file; do
         md_title=$(find_md_title "$md_file")
-        md_short=""
+        local md_short=""
         [[ "$SHORT" == 1 ]] && md_short=$(find_md_short "$md_file")
-        md_pre=""
+        local md_pre=""
         if [[ "$TREE" == 1 ]]; then
           md_pre="[ ] $(echo "$md_file" | awk -F"/" '{ for(i=1;i < NF; i++) printf "&rarr; "}')"
         fi

@@ -16,46 +16,50 @@ Convenient bash wrapper for Mkdocs Material projects via Docker
 
 ```
 Program : mkdox  by peter@forret.com
-Version : v0.1.15 (2024-01-23 14:10)
+Version : v0.1.34 (2024-02-21 23:06)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
-Usage   : mkdox [-h] [-q] [-v] [-f] [-R] [-l <log_dir>] [-t <tmp_dir>] [-D <DOCKER>] [-H <HISTORY>] [-P <PORT>] [-S <SECS>] <action> <input?>
+Usage   : mkdox [-h] [-q] [-v] [-f] [-G] [-I] [-Q] [-R] [-T] [-X] [-l <log_dir>] [-t <tmp_dir>] [-D <DOCKER>] [-E <TITLE>] [-H <HISTORY>] [-L <LENGTH>] [-P <PORT>] [-S <SECS>] <action> <input?> <output?>
 Flags, options and parameters:
     -h|--help        : [flag] show usage [default: off]
     -q|--quiet       : [flag] no output [default: off]
     -v|--verbose     : [flag] also show debug messages [default: off]
     -f|--force       : [flag] do not ask for confirmation (always yes) [default: off]
+    -G|--GITPUSH     : [flag] push to git after commit [default: off]
+    -I|--INDEX       : [flag] build index.md if index.pre/.post present (for mkdox build) [default: off]
     -Q|--SHORT       : [flag] include short contents of page (for mkdox toc) [default: off]
     -R|--RECURSIVE   : [flag] also list subfolders (for mkdox toc) [default: off]
     -T|--TREE        : [flag] list as tree (for mkdox toc) [default: off]
+    -X|--EXPORT      : [flag] export to PDF (for mkdox build) [default: off]
     -l|--log_dir <?> : [option] folder for log files   [default: /home/pforret/log/mkdox]
     -t|--tmp_dir <?> : [option] folder for temp files  [default: /tmp/mkdox]
     -D|--DOCKER <?>  : [option] docker image to use  [default: pforret/mkdox-material]
+    -E|--TITLE <?>   : [option] set site title
     -H|--HISTORY <?> : [option] days to take into account for mkdox recent  [default: 7]
+    -L|--LENGTH <?>  : [option] max commit message length  [default: 99]
     -P|--PORT <?>    : [option] http port for serve  [default: 8000]
-    -S|--SECS <?>    : [option] seconds to wait for launching a browser  [default: 5]
+    -S|--SECS <?>    : [option] seconds to wait for launching a browser  [default: 10]
     <action>         : [choice] action to perform  [options: new,serve,build,recent,toc,check,env,update]
     <input>          : [parameter] input folder name (optional)
     <output>         : [parameter] output file name (optional)
-
+                            
 ### TIPS & EXAMPLES
-* use 'mkdox new' to create new Mkdocs Material project
+* use mkdox new to create new Mkdocs Material project
   mkdox new <name>
-* use 'mkdox build' to create static HTML site in _site folder
+* use mkdox build to create static HTML site in _site folder
   mkdox build
-* use 'mkdox serve' to start local website server (for preview)
+* use mkdox serve to start local website server (for preview)
   mkdox serve
-* use 'mkdox toc' to quickly list all subpages
+* use mkdox toc <folder> <file> to create Table Of Contents for all Markdown files in folder
   mkdox toc faq/services
-  mkdox -R toc
-  mkdox -Q -T -R toc index.md
-* use 'mkdox recent' to quickly list all pages changed in last N days
+  mkdox -R toc . index
+* use mkdox recent to quickly list all pages changed in last N days
   mkdox recent >> changes.md
   mkdox -H 2 recent | sed 's|* |\&bull; |' >> changes.md
-* use 'mkdox check' to check if this script is ready to execute and what values the options/flags are
+* use mkdox check to check if this script is ready to execute and what values the options/flags are
   mkdox check
-* use 'mkdox env' to generate an example .env file
+* use mkdox env to generate an example .env file
   mkdox env > .env
-* use 'mkdox update' to update to the latest version
+* use mkdox update to update to the latest version
   mkdox update
 * >>> bash script created with pforret/bashew
 * >>> for bash development, also check out pforret/setver and pforret/progressbar
