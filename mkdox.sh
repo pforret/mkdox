@@ -125,7 +125,6 @@ function Script:main() {
         done
 
       popd >/dev/null || IO:die "Can't return to original folder"
-      IO:die "indexes built"
     fi
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
