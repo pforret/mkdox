@@ -68,10 +68,11 @@ function Script:main() {
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
     IO:print "Run 'mkdocs new' via Docker"
     docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder"
-    folder_path=$(realpath "$folder")
-    local file template actual filesize SITE_NAME
-    SITE_NAME="Mkdocs $(basename "$folder")"
-    [[ -n "$TITLE" ]] && SITE_NAME="$TITLE"
+    local folder_path project_name project_title
+    folder_path="$(cd "$folder" && pwd)"
+    project_name="$(basename "$folder_path")"
+    project_title="Mkdox $project_name"
+    [[ -n "$TITLE" ]] && project_title="$TITLE"
 
     (
       cd "$script_install_folder/templates/" || exit
@@ -80,14 +81,15 @@ function Script:main() {
       # now copy each template file while
       find . -type f \
       | while read -r template; do
-        file="$(echo "$template" | sed 's|^\./||')"
+        # file="$(echo "$template" | sed 's|^\./||')"
+        file="${template//\.\//}"
         IO:print "Create $file ..."
         actual="$folder_path/$file"
         CREATION_DATE="$(date '+%Y-%m-%d')"
         CREATION_YEAR="$(date '+%Y')"
         USERNAME="$(whoami)"
         <"$template" awk \
-        -v SITE_NAME="$SITE_NAME" \
+        -v SITE_NAME="$project_title" \
         -v CREATION_DATE="$CREATION_DATE" \
         -v CREATION_YEAR="$CREATION_YEAR" \
         -v USERNAME="$USERNAME" \
