@@ -71,7 +71,7 @@ plugins:
       #    - 'bugs/'
       #    - 'appendix/contribute/'
 
-copyright: &copy; {CREATION_YEAR} {SITE_NAME} &bull; {USERNAME}
+copyright: "&copy; {CREATION_YEAR} {SITE_NAME} &bull; {USERNAME}"
 
 extra:
   generator: false
