@@ -100,7 +100,7 @@ function Script:main() {
       done
     )
 
-    IO:success "New Mkdocs Material project created in $(realpath "$folder")"
+    IO:success "New Mkdocs Material project created in '$folder'"
     ;;
 
   build)
