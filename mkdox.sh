@@ -15,9 +15,19 @@ readonly run_as_root=-1 # run_as_root: 0 = don't check anything / 1 = script MUS
 readonly script_description="easy wrapper for Material Mkdocs in Docker mode"
 ## some initialisation
 action=""
-script_prefix=""
-script_basename=""
+git_repo_remote=""
+git_repo_root=""
 install_package=""
+os_kernel=""
+os_machine=""
+os_name=""
+os_version=""
+script_basename=""
+script_hash="?"
+script_lines="?"
+script_prefix=""
+shell_brand=""
+shell_version=""
 temp_files=()
 
 function Option:config() {
@@ -61,13 +71,14 @@ function Script:main() {
   new)
     #TIP: use «$script_prefix new» to create new Mkdocs Material project
     #TIP:> $script_prefix new <name>
-    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    docker -v &>/dev/null || IO:die "Docker is not installed or not yet started"
+    docker ps &>/dev/null || IO:die "Docker is not yet started"
     local folder="${input:-.}"
     IO:announce "Create new Mkdocs Material project in $folder"
     [[ ! -d "$folder" ]] && mkdir "$folder"
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
     IO:print "Run 'mkdocs new' via Docker"
-    docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder"
+    docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder" 2>/dev/null || IO:die "Could not create new Mkdocs project"
     local folder_path project_name project_title
     folder_path="$(cd "$folder" && pwd)"
     project_name="$(basename "$folder_path")"
@@ -79,27 +90,27 @@ function Script:main() {
       # first just create the folders
       find . -type d -exec mkdir -p -- "$folder_path/{}" \;
       # now copy each template file while
-      find . -type f \
-      | while read -r template; do
-        # file="$(echo "$template" | sed 's|^\./||')"
-        file="${template//\.\//}"
-        IO:print "Create $file ..."
-        actual="$folder_path/$file"
-        CREATION_DATE="$(date '+%Y-%m-%d')"
-        CREATION_YEAR="$(date '+%Y')"
-        USERNAME="$(whoami)"
-        <"$template" awk \
-        -v SITE_NAME="$project_title" \
-        -v CREATION_DATE="$CREATION_DATE" \
-        -v CREATION_YEAR="$CREATION_YEAR" \
-        -v USERNAME="$USERNAME" \
-        '{
+      find . -type f |
+        while read -r template; do
+          # file="$(echo "$template" | sed 's|^\./||')"
+          file="${template//\.\//}"
+          IO:print "Create $file ..."
+          actual="$folder_path/$file"
+          CREATION_DATE="$(date '+%Y-%m-%d')"
+          CREATION_YEAR="$(date '+%Y')"
+          USERNAME="$(whoami)"
+          awk <"$template" \
+            -v SITE_NAME="$project_title" \
+            -v CREATION_DATE="$CREATION_DATE" \
+            -v CREATION_YEAR="$CREATION_YEAR" \
+            -v USERNAME="$USERNAME" \
+            '{
         gsub(/{CREATION_DATE}/,CREATION_DATE);
         gsub(/{CREATION_YEAR}/,CREATION_YEAR);
         gsub(/{SITE_NAME}/,SITE_NAME);
         gsub(/{USERNAME}/,USERNAME);
         print }' >"$actual"
-      done
+        done
     )
 
     IO:success "New Mkdocs Material project created in '$folder'"
@@ -185,9 +196,10 @@ function Script:main() {
     #TIP: use «$script_prefix toc <folder> <file>» to create Table Of Contents for all Markdown files in folder
     #TIP:> $script_prefix toc faq/services
     #TIP:> $script_prefix -R toc . index
-    local md_title
+    local md_title md_file
     local root_folder="${input:-.}"
-    local output_file="$output"
+    # shellcheck disable=SC2154
+    local output_file="${output}"
     if [[ "$RECURSIVE" -eq 0 ]]; then
       find "$root_folder" -maxdepth 1 -type f -name '*.md'
     else
@@ -207,6 +219,7 @@ function Script:main() {
         [[ -n "$md_title" ]] && echo "* $md_pre [$md_title]($md_file) $md_short"
       done |
       if [[ -n "$output_file" ]]; then
+        local pre_file post_file
         # shellcheck disable=SC2094
         {
           pre_file=$(basename "$output_file" .md).pre
@@ -289,7 +302,6 @@ function find_md_title() {
 function find_md_short() {
   local file="$1"
   local words="${2:-15}"
-  local from_filename from_h1 from_front
   grep <"$file" -v '^[#!\[]' | tr '\n' ' ' | sed 's|[^a-zA-Z0-9@. ]| |g' | tr -s ' ' | cut -d' ' -f"1-$words"
 }
 
@@ -348,6 +360,7 @@ function IO:initialize() {
     txtUnderline=$(tput smul)
   fi
 
+  local unicode
   [[ $(echo -e '\xe2\x82\xac') == '€' ]] && unicode=1 || unicode=0 # detect if unicode is supported
   if [[ $unicode -gt 0 ]]; then
     char_succes="✅"
@@ -408,7 +421,7 @@ function IO:progress() {
 function IO:countdown() {
   local seconds=${1:-5}
   local message=${2:-Countdown :}
-
+  local i
   if ((piped)); then
     IO:print "$message $seconds seconds"
   else
@@ -474,9 +487,7 @@ function Tool:throughput() {
   local operations="${2:-1}"
   local name="${3:-operation}"
 
-  local time_finished
-  local duration
-  local seconds
+  local time_finished duration seconds ops
   time_finished="$(Tool:time)"
   duration="$(Tool:calc "$time_finished - $time_started")"
   seconds="$(Tool:round "$duration")"
@@ -582,12 +593,13 @@ function Str:digest() {
   fi
 }
 
-# Gha: function should only be run inside of a Github Action
+# Gha: function should only be run inside a GitHub Action
 
 function Gha:finish() {
   [[ -z "${RUNNER_OS:-}" ]] && IO:die "This should only run inside a Github Action, don't run it on your machine"
   git config user.name "Bashew Runner"
   git config user.email "actions@users.noreply.github.com"
+  local timestamp message
   timestamp=$(date -u)
   message="$timestamp < $script_basename $script_version"
   git add -A
@@ -604,6 +616,7 @@ trap "IO:die \"ERROR \$? after \$SECONDS seconds \n\
 # cf https://askubuntu.com/questions/513932/what-is-the-bash-command-variable-good-for
 
 Script:exit() {
+  local temp_file
   for temp_file in "${temp_files[@]-}"; do
     [[ -f "$temp_file" ]] && (
       IO:debug "Delete temp file [$temp_file]"
@@ -664,7 +677,6 @@ Script:show_tips() {
 }
 
 Script:check() {
-  local name
   if [[ -n $(Option:filter flag) ]]; then
     IO:print "## ${txtInfo}boolean flags${txtReset}:"
     Option:filter flag |
@@ -877,8 +889,7 @@ function Option:parse() {
     IO:debug "$config_icon Expect : $option_count choice(s): $option_list"
     [[ $# -eq 0 ]] && IO:die "need the choice(s) [$option_list]"
 
-    local choices_list
-    local valid_choice
+    local choices_list valid_choice param
     for param in $choices; do
       [[ $# -eq 0 ]] && IO:die "need choice [$param]"
       [[ -z "$1" ]] && IO:die "need choice [$param]"
@@ -1190,6 +1201,7 @@ function Os:import_env() {
     )
   fi
 
+  local env_file
   for env_file in "${env_files[@]}"; do
     if [[ -f "$env_file" ]]; then
       IO:debug "$config_icon Read  dotenv: [$env_file]"
@@ -1230,13 +1242,13 @@ function Os:clean_env() {
 IO:initialize # output settings
 Script:meta   # find installation folder
 
-[[ $run_as_root == 1 ]] && [[ $UID -ne 0 ]] && IO:die "user is $USER, MUST be root to run [$script_basename]"
-[[ $run_as_root == -1 ]] && [[ $UID -eq 0 ]] && IO:die "user is $USER, CANNOT be root to run [$script_basename]"
+[[ ${run_as_root} == 1 ]] && [[ $UID -ne 0 ]] && IO:die "user is $USER, MUST be root to run [$script_basename]"
+[[ ${run_as_root} == -1 ]] && [[ $UID -eq 0 ]] && IO:die "user is $USER, CANNOT be root to run [$script_basename]"
 
 Option:initialize # set default values for flags & options
 Os:import_env     # overwrite with .env if any
 
-if [[ $sourced -eq 0 ]]; then
+if [[ ${sourced} -eq 0 ]]; then
   Option:parse "$@" # overwrite with specified options if any
   Script:initialize # clean up folders
   Script:main       # run Script:main program

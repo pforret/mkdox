@@ -53,6 +53,10 @@ markdown_extensions:
 plugins:
   - search
   - awesome-pages
+  - blog:
+      blog_dir: news
+      post_url_date_format: yyyy/MM
+      post_date_format: medium
   - with-pdf:
       output_path: pdf/document.pdf
       enabled_if_env: ENABLE_PDF_EXPORT
