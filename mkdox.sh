@@ -51,7 +51,7 @@ option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|10
-choice|1|action|action to perform|new,serve,build,recent,toc,check,env,update
+choice|1|action|action to perform|new,serve,post,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
 " -v -e '^#' -e '^\s*$'
@@ -78,6 +78,7 @@ function Script:main() {
     [[ ! -d "$folder" ]] && mkdir "$folder"
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
     IO:print "Run 'mkdocs new' via Docker"
+    # shellcheck disable=SC2154
     docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder" 2>/dev/null || IO:die "Could not create new Mkdocs project"
     local folder_path project_name project_title
     folder_path="$(cd "$folder" && pwd)"
@@ -140,6 +141,7 @@ function Script:main() {
       popd >/dev/null || IO:die "Can't return to original folder"
     fi
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
+    # shellcheck disable=SC2154
     docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
 
     if [[ ! -d .git ]]; then
@@ -192,6 +194,36 @@ function Script:main() {
     docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
     ;;
 
+  post)
+    local blog_folder="docs/blog"
+    if [[ -f mkdocs.yml ]]; then
+      grep <mkdocs.yml -q 'blog_dir:' && blog_folder="docs/$(awk '/blog_dir:/ {print $2}' mkdocs.yml)"
+    fi
+    IO:debug "Blog folder: $blog_folder"
+    [[ ! -d "$blog_folder" ]] && mkdir -p "$blog_folder"
+    [[ ! -d "$blog_folder/posts" ]] && mkdir -p "$blog_folder/posts"
+
+    local post_title post_date post_slug post_file
+    post_date="$(IO:question "Post date" "$(date '+%Y-%m-%d')")"
+    post_title="$(IO:question "Post title" "New post")"
+    post_slug="$(Str:slugify "$post_title" | cut -c1-12)"
+    post_file="$blog_folder/posts/$post_date-$post_slug.md"
+
+    [[ -f "$post_file" ]] && IO:die "Post file already exists: $post_file"
+    {
+      echo "---"
+      echo "title: $post_title"
+      echo "date: $post_date"
+      echo "categories: "
+      echo "    - blog"
+      echo "    - post"
+      echo "---"
+      echo " "
+
+    } >"$post_file"
+    IO:success "New post created: $post_file"
+
+    ;;
   toc)
     #TIP: use «$script_prefix toc <folder> <file>» to create Table Of Contents for all Markdown files in folder
     #TIP:> $script_prefix toc faq/services
@@ -315,6 +347,7 @@ set -uo pipefail
 IFS=$'\n\t'
 force=0
 help=0
+# shellcheck disable=SC2034
 error_prefix=""
 
 #to enable verbose even before option parsing
@@ -372,6 +405,7 @@ function IO:initialize() {
     clean_icon="🧽"
     require_icon="🔌"
   fi
+  # shellcheck disable=SC2034
   error_prefix="${txtError}>${txtReset}"
 }
 
