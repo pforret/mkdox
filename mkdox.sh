@@ -203,11 +203,12 @@ function Script:main() {
     [[ ! -d "$blog_folder" ]] && mkdir -p "$blog_folder"
     [[ ! -d "$blog_folder/posts" ]] && mkdir -p "$blog_folder/posts"
 
-    local post_title post_date post_slug post_file
+    local post_title post_date post_slug post_file post_categories
     post_date="$(IO:question "Post date" "$(date '+%Y-%m-%d')")"
     post_title="$(IO:question "Post title" "New post")"
     post_slug="$(Str:slugify "$post_title" | cut -c1-12)"
     post_file="$blog_folder/posts/$post_date-$post_slug.md"
+    post_categories="$(IO:question "Post categories" "blog,post")"
 
     [[ -f "$post_file" ]] && IO:die "Post file already exists: $post_file"
     {
@@ -215,8 +216,7 @@ function Script:main() {
       echo "title: $post_title"
       echo "date: $post_date"
       echo "categories: "
-      echo "    - blog"
-      echo "    - post"
+      <<< "$post_categories" tr ',' "\n" | awk '{print "    - " $0}'
       echo "---"
       echo " "
 
