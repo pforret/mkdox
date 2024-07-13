@@ -79,7 +79,7 @@ function Script:main() {
     [[ ! -d "$folder/docs" ]] && mkdir "$folder/docs"
     IO:print "Run 'mkdocs new' via Docker"
     # shellcheck disable=SC2154
-    docker run --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder" 2>/dev/null || IO:die "Could not create new Mkdocs project"
+    docker run --platform linux/amd64 --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder" 2>/dev/null || IO:die "Could not create new Mkdocs project"
     local folder_path project_name project_title
     folder_path="$(cd "$folder" && pwd)"
     project_name="$(basename "$folder_path")"
@@ -95,22 +95,30 @@ function Script:main() {
         while read -r template; do
           # file="$(echo "$template" | sed 's|^\./||')"
           file="${template//\.\//}"
-          IO:print "Create $file ..."
+          extension="${file##*.}"
           actual="$folder_path/$file"
-          CREATION_DATE="$(date '+%Y-%m-%d')"
-          CREATION_YEAR="$(date '+%Y')"
-          USERNAME="$(whoami)"
-          awk <"$template" \
-            -v SITE_NAME="$project_title" \
-            -v CREATION_DATE="$CREATION_DATE" \
-            -v CREATION_YEAR="$CREATION_YEAR" \
-            -v USERNAME="$USERNAME" \
-            '{
-        gsub(/{CREATION_DATE}/,CREATION_DATE);
-        gsub(/{CREATION_YEAR}/,CREATION_YEAR);
-        gsub(/{SITE_NAME}/,SITE_NAME);
-        gsub(/{USERNAME}/,USERNAME);
-        print }' >"$actual"
+          if [[ "$extension" == "md" || "$extension" == "pre" || "$extension" == "post" || "$extension" == "yml" ]]; then
+             IO:print "Create $file ..."
+            CREATION_DATE="$(date '+%Y-%m-%d')"
+            CREATION_YEAR="$(date '+%Y')"
+            USERNAME="$(whoami)"
+            awk <"$template" \
+              -v SITE_URL="https://$folder.com" \
+              -v SITE_NAME="$project_title" \
+              -v CREATION_DATE="$CREATION_DATE" \
+              -v CREATION_YEAR="$CREATION_YEAR" \
+              -v USERNAME="$USERNAME" \
+              '{
+            gsub(/{CREATION_DATE}/,CREATION_DATE);
+            gsub(/{CREATION_YEAR}/,CREATION_YEAR);
+            gsub(/{SITE_NAME}/,SITE_NAME);
+            gsub(/{SITE_URL}/,SITE_URL);
+            gsub(/{USERNAME}/,USERNAME);
+            print }' >"$actual"
+         else
+          IO:progress "Copy $file ..."
+          cp "$template" "$actual"
+          fi
         done
     )
 
@@ -142,7 +150,7 @@ function Script:main() {
     fi
     IO:announce "Build Mkdocs Material site: $(basename "$PWD")"
     # shellcheck disable=SC2154
-    docker run --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
+    docker run --platform linux/amd64 --rm -it -e ENABLE_PDF_EXPORT="$EXPORT" -v "${PWD}":/docs "$DOCKER" build
 
     if [[ ! -d .git ]]; then
       IO:debug "No .git folder detected - skipping git commit/push"
@@ -191,7 +199,7 @@ function Script:main() {
       fi
 
     ) &
-    docker run --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
+    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
     ;;
 
   post)
