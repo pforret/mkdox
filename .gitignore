@@ -5,3 +5,5 @@ log
 .idea
 vendor
 temp/
+.DS_Store
+*/.DS_Store
