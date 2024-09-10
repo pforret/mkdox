@@ -45,7 +45,7 @@ flag|T|TREE|list as tree (for mkdox toc)
 flag|X|EXPORT|export to PDF (for mkdox build)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
-option|D|DOCKER|docker image to use|pforret/mkdox-material
+option|D|DOCKER|docker image to use|pforret/mkdox-material-derived
 option|E|TITLE|set site title|
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
