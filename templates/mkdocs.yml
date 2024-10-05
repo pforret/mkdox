@@ -68,23 +68,6 @@ plugins:
       date_from_meta:
         as_creation: date
         as_update: date
-  - with-pdf:
-      output_path: pdf/document.pdf
-      enabled_if_env: ENABLE_PDF_EXPORT
-      toc_level: 3
-      # two_columns_level: 3
-      # author: {SITE_NAME}
-      # copyright: "&copy: 2024 {SITE_NAME}"
-      # cover_subtitle: Your Subtitle
-      # cover_logo: img/cover.jpg
-      # ordered_chapter_level: 2
-      # excludes_children:
-      #    - 'release-notes/:upgrading'
-      #    - 'release-notes/:changelog'
-      #
-      # exclude_pages:
-      #    - 'bugs/'
-      #    - 'appendix/contribute/'
 
 copyright: "&copy; {CREATION_YEAR} {SITE_NAME} &bull; {USERNAME}"
 
