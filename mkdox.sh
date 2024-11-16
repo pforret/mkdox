@@ -165,7 +165,7 @@ function Script:main() {
     git add mkdocs.yml
     git add site/
     # shellcheck disable=SC2153
-    git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{gsub("docs/",""); print $2"("$1") - "}' | xargs | cut "-c1-$LENGTH")"
+    git_message="$(git status --porcelain | grep -v 'site/' | grep -v VERSION.md | awk '{ gsub("docs/",""); print $2"("$1") - "}' | tr "\n" " "  | cut "-c1-$LENGTH")"
     if [[ -n "$git_message" ]]; then
       IO:debug "Git commit: '$git_message'"
       git commit -m "CHANGES: $git_message"
