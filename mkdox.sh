@@ -51,7 +51,7 @@ option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
 option|P|PORT|http port for serve|8000
 option|S|SECS|seconds to wait for launching a browser|10
-choice|1|action|action to perform|new,serve,post,build,recent,toc,check,env,update
+choice|1|action|action to perform|new,serve,post,images,build,recent,toc,check,env,update
 param|?|input|input folder name
 param|?|output|output file name
 " -v -e '^#' -e '^\s*$'
@@ -200,6 +200,26 @@ function Script:main() {
 
     ) &
     docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
+    ;;
+
+  images)
+    #TIP: use «$script_prefix images» to list all images in a folder into a .md file
+    #TIP:> $script_prefix images docs/some/folder docs/some/folder/images.md
+    [[ -z "$input" ]] && IO:die "Need input folder"
+    [[ ! -d "$input" ]] && IO:die "Folder [$input] found"
+    [[ -z "$output" ]] && output="$input/images.md"
+    IO:debug "Images from $input to $output"
+    (
+      echo "# Images in $(basename $input)"
+      echo " "
+      find "$input" -type f -iname '*.jpg' -o -iname '*.png' | sort |
+      while read -r image; do
+        name="$(basename "$image")"
+        printf '![%s](%s){ width="%s"}\n' "$name" "$name" "32%"
+      done
+      ) \
+      > "$output"
+      IO:success "Images listed in $output"
     ;;
 
   post)
