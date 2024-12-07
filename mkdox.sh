@@ -211,7 +211,7 @@ function Script:main() {
     [[ -z "$output" ]] && output="$input/images.md"
     IO:debug "Images from $input to $output"
     (
-      echo "# Images in $(basename $input)"
+      echo "# Images in $(basename "$input")"
       echo " "
       find "$input" -type f -iname '*.jpg' -o -iname '*.png' | sort |
       while read -r image; do
