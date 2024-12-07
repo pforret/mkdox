@@ -16,7 +16,7 @@ Convenient bash wrapper for Mkdocs Material projects via Docker
 
 ```
 Program : mkdox  by peter@forret.com
-Version : v0.1.34 (2024-02-21 23:06)
+Version : v0.5.7 (Dec  7 09:44:11 2024)
 Purpose : easy wrapper for Material Mkdocs in Docker mode
 Usage   : mkdox [-h] [-q] [-v] [-f] [-G] [-I] [-Q] [-R] [-T] [-X] [-l <log_dir>] [-t <tmp_dir>] [-D <DOCKER>] [-E <TITLE>] [-H <HISTORY>] [-L <LENGTH>] [-P <PORT>] [-S <SECS>] <action> <input?> <output?>
 Flags, options and parameters:
@@ -30,18 +30,18 @@ Flags, options and parameters:
     -R|--RECURSIVE   : [flag] also list subfolders (for mkdox toc) [default: off]
     -T|--TREE        : [flag] list as tree (for mkdox toc) [default: off]
     -X|--EXPORT      : [flag] export to PDF (for mkdox build) [default: off]
-    -l|--log_dir <?> : [option] folder for log files   [default: /home/pforret/log/mkdox]
+    -l|--log_dir <?> : [option] folder for log files   [default: /Users/pforret/log/mkdox]
     -t|--tmp_dir <?> : [option] folder for temp files  [default: /tmp/mkdox]
-    -D|--DOCKER <?>  : [option] docker image to use  [default: pforret/mkdox-material]
+    -D|--DOCKER <?>  : [option] docker image to use  [default: pforret/mkdox-material-derived]
     -E|--TITLE <?>   : [option] set site title
     -H|--HISTORY <?> : [option] days to take into account for mkdox recent  [default: 7]
     -L|--LENGTH <?>  : [option] max commit message length  [default: 99]
     -P|--PORT <?>    : [option] http port for serve  [default: 8000]
     -S|--SECS <?>    : [option] seconds to wait for launching a browser  [default: 10]
-    <action>         : [choice] action to perform  [options: new,serve,build,recent,toc,check,env,update]
+    <action>         : [choice] action to perform  [options: new,serve,post,images,build,recent,toc,check,env,update]
     <input>          : [parameter] input folder name (optional)
     <output>         : [parameter] output file name (optional)
-                            
+                                  @github.com:pforret/mkdox.git                                             
 ### TIPS & EXAMPLES
 * use mkdox new to create new Mkdocs Material project
   mkdox new <name>
@@ -49,6 +49,8 @@ Flags, options and parameters:
   mkdox build
 * use mkdox serve to start local website server (for preview)
   mkdox serve
+* use mkdox images to list all images in a folder into a .md file
+  mkdox images docs/some/folder docs/some/folder/images.md
 * use mkdox toc <folder> <file> to create Table Of Contents for all Markdown files in folder
   mkdox toc faq/services
   mkdox -R toc . index
