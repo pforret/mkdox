@@ -178,7 +178,8 @@ function Script:main() {
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
     [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
-    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    docker -v >/dev/null || IO:die "Docker is not installed or not yet started" # works for WSL, but not for macOS
+    docker ps &>/dev/null || IO:die "Docker is not yet started" # works for macOS
     (
       IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
       if [[ -n $(command -v explorer.exe) ]]; then
