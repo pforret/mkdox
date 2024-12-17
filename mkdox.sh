@@ -49,7 +49,7 @@ option|D|DOCKER|docker image to use|pforret/mkdox-material-derived
 option|E|TITLE|set site title|
 option|H|HISTORY|days to take into account for mkdox recent|7
 option|L|LENGTH|max commit message length|99
-option|P|PORT|http port for serve|8000
+option|P|PORT|http port for serve|
 option|S|SECS|seconds to wait for launching a browser|10
 choice|1|action|action to perform|new,serve,post,images,build,recent,toc,check,env,update
 param|?|input|input folder name
@@ -180,6 +180,8 @@ function Script:main() {
     [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
     docker -v >/dev/null || IO:die "Docker is not installed or not yet started" # works for WSL, but not for macOS
     docker ps &>/dev/null || IO:die "Docker is not yet started" # works for macOS
+    IO:debug "Start Mkdocs Material server on port '$PORT'"
+    [[ -z "$PORT" ]] && PORT="$(derive_port)"
     (
       IO:countdown "$SECS" "Open http://localhost:$PORT ($os_name) ..."
       if [[ -n $(command -v explorer.exe) ]]; then
@@ -344,6 +346,16 @@ function Script:main() {
 #####################################################################
 ## Put your helper scripts here
 #####################################################################
+
+function derive_port() {
+  local port=8000
+  local digest
+  digest=$(pwd | sha1sum | cut -c1-8)
+  IO:debug "Digest: $digest"
+  port=$((port + $((16#$digest)) % 99))
+  IO:debug "Port: $port"
+  echo "$port"
+}
 
 function find_md_title() {
   local file="$1"
