@@ -37,6 +37,7 @@ flag|h|help|show usage
 flag|q|quiet|no output
 flag|v|verbose|also show debug messages
 flag|f|force|do not ask for confirmation (always yes)
+flag|B|BLOG|use blog-enabled template for mkdox new
 flag|G|GITPUSH|push to git after commit
 flag|I|INDEX|build index.md if index.pre/.post present (for mkdox build)
 flag|Q|SHORT|include short contents of page (for mkdox toc)
@@ -80,14 +81,21 @@ function Script:main() {
     IO:print "Run 'mkdocs new' via Docker"
     # shellcheck disable=SC2154
     docker run --platform linux/amd64 --rm -it --user "$(id -u)":"$(id -g)" -v "${PWD}":/docs "$DOCKER" new "$folder" 2>/dev/null || IO:die "Could not create new Mkdocs project"
-    local folder_path project_name project_title
+    local folder_path project_name project_title site_name template_folder
     folder_path="$(cd "$folder" && pwd)"
     project_name="$(basename "$folder_path")"
-    project_title="Mkdox $project_name"
+    site_name="$project_name.test"
+    repo_url="$(cd $folder_path && git config --get remote.origin.url 2>/dev/null || true)"
+    project_title="$project_name Docs"
     [[ -n "$TITLE" ]] && project_title="$TITLE"
+    template_folder="$script_install_folder/templates/simple/"
+    if ((BLOG)); then
+      template_folder="${script_install_folder}/templates/with_blog/"
+      IO:print "Use blog-enabled template"
+    fi
 
     (
-      cd "$script_install_folder/templates/" || exit
+      cd "$template_folder" || exit
       # first just create the folders
       find . -type d -exec mkdir -p -- "$folder_path/{}" \;
       # now copy each template file while
@@ -103,8 +111,9 @@ function Script:main() {
             CREATION_YEAR="$(date '+%Y')"
             USERNAME="$(whoami)"
             awk <"$template" \
-              -v SITE_URL="https://$folder.com" \
+              -v SITE_URL="$site_name" \
               -v SITE_NAME="$project_title" \
+              -v REPO_URL="$repo_url" \
               -v CREATION_DATE="$CREATION_DATE" \
               -v CREATION_YEAR="$CREATION_YEAR" \
               -v USERNAME="$USERNAME" \
@@ -112,15 +121,34 @@ function Script:main() {
             gsub(/{CREATION_DATE}/,CREATION_DATE);
             gsub(/{CREATION_YEAR}/,CREATION_YEAR);
             gsub(/{SITE_NAME}/,SITE_NAME);
+            gsub(/{REPO_URL}/,REPO_URL);
             gsub(/{SITE_URL}/,SITE_URL);
             gsub(/{USERNAME}/,USERNAME);
             print }' >"$actual"
+         elif [[ "$extension" == "env" ]] ; then
+           if [[ -f $actual ]]; then
+             IO:print "Append $file ..."
+             cat "$template" >> "$actual"
+           else
+             IO:print "Copy $file ..."
+             cp "$template" "$actual"
+           fi
          else
           IO:progress "Copy $file ..."
           cp "$template" "$actual"
           fi
         done
     )
+    if [[ $folder == "." && -f README.md && -f docs/index.md ]] ; then
+      if IO:confirm "Would you like me to reuse your README.md as the website homepage?" ; then
+        mv docs/index.md docs/instructions.md
+        mv README.md docs/index.md
+        ln -s docs/index.md README.md
+        IO:print "Done!"
+      else
+        IO:print "Keeping your README.md as is"
+      fi
+    fi
 
     IO:success "New Mkdocs Material project created in '$folder'"
     ;;
