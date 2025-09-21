@@ -151,6 +151,16 @@ function Script:main() {
     fi
 
     IO:success "New Mkdocs Material project created in '$folder'"
+    if [[ $folder == "." ]] ; then
+      IO:print "* You can now edit the docs in 'docs'"
+      IO:print "* You can now edit the settings/look in 'mkdocs.yml'"
+      IO:print "* To preview the site, run 'mkdox serve'"
+    else
+      IO:print "* You can now edit the docs in '$folder/docs'"
+      IO:print "* You can now edit the settings/look in '$folder/mkdocs.yml'"
+      IO:print "* To preview the site, run 'cd \"$folder\" && mkdox serve'"
+    fi
+
     ;;
 
   build)
