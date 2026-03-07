@@ -240,7 +240,7 @@ function Script:main() {
       fi
 
     ) &
-    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
+    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER" serve --dev-addr=0.0.0.0:8000 --livereload
     ;;
 
   images)
