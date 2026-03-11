@@ -1,9 +1,10 @@
-log
-.tmp
 *.tmp
-.env
-.idea
-vendor
-temp/
-.DS_Store
 */.DS_Store
+.DS_Store
+.claude/settings.local.json
+.env
+/.idea
+/.tmp
+/log
+/temp/
+/vendor
