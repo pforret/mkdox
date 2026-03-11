@@ -85,7 +85,7 @@ function Script:main() {
     folder_path="$(cd "$folder" && pwd)"
     project_name="$(basename "$folder_path")"
     site_name="$project_name.test"
-    repo_url="$(cd $folder_path && git config --get remote.origin.url 2>/dev/null || true)"
+    repo_url="$(cd "$folder_path" && git config --get remote.origin.url 2>/dev/null)" || true
     project_title="$project_name Docs"
     [[ -n "$TITLE" ]] && project_title="$TITLE"
     template_folder="$script_install_folder/templates/simple/"
@@ -240,7 +240,7 @@ function Script:main() {
       fi
 
     ) &
-    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER"
+    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER" serve --dev-addr=0.0.0.0:8000 --livereload
     ;;
 
   images)
