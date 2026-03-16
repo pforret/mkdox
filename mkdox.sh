@@ -43,6 +43,7 @@ flag|I|INDEX|build index.md if index.pre/.post present (for mkdox build)
 flag|Q|SHORT|include short contents of page (for mkdox toc)
 flag|R|RECURSIVE|also list subfolders (for mkdox toc)
 flag|T|TREE|list as tree (for mkdox toc)
+flag|W|DIRTY|use --dirty flag for faster serve (only rebuild changed files)
 flag|X|EXPORT|export to PDF (for mkdox build)
 option|l|log_dir|folder for log files |$HOME/log/$script_prefix
 option|t|tmp_dir|folder for temp files|/tmp/$script_prefix
@@ -240,7 +241,9 @@ function Script:main() {
       fi
 
     ) &
-    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER" serve --dev-addr=0.0.0.0:8000 --livereload
+    local dirty_flag=""
+    ((DIRTY)) && dirty_flag="--dirty"
+    docker run --platform linux/amd64 --rm -it -p "$PORT":8000 -v "${PWD}":/docs "$DOCKER" serve --dev-addr=0.0.0.0:8000 --livereload $dirty_flag
     ;;
 
   images)
