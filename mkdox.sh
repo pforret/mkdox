@@ -73,8 +73,7 @@ function Script:main() {
   new)
     #TIP: use «$script_prefix new» to create new Mkdocs Material project
     #TIP:> $script_prefix new <name>
-    docker -v &>/dev/null || IO:die "Docker is not installed or not yet started"
-    docker ps &>/dev/null || IO:die "Docker is not yet started"
+    Docker:ensure_running
     local folder="${input:-.}"
     IO:announce "Create new Mkdocs Material project in $folder"
     [[ ! -d "$folder" ]] && mkdir "$folder"
@@ -167,7 +166,7 @@ function Script:main() {
   build)
     #TIP: use «$script_prefix build» to create static HTML site in _site folder
     #TIP:> $script_prefix build
-    docker -v >/dev/null || IO:die "Docker is not installed or not yet started"
+    Docker:ensure_running
     [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
     if ((INDEX)); then
       # create the index.md file in any folder that has a index.pre or index.post file
@@ -217,8 +216,7 @@ function Script:main() {
     #TIP: use «$script_prefix serve» to start local website server (for preview)
     #TIP:> $script_prefix serve
     [[ ! -d docs ]] && IO:die "No 'docs' folder found in $(realpath "$PWD")"
-    docker -v >/dev/null || IO:die "Docker is not installed or not yet started" # works for WSL, but not for macOS
-    docker ps &>/dev/null || IO:die "Docker is not yet started" # works for macOS
+    Docker:ensure_running
     IO:debug "Start Mkdocs Material server on port '$PORT'"
     [[ -z "$PORT" ]] && PORT="$(derive_port)"
     (
@@ -417,6 +415,67 @@ function find_md_short() {
   local file="$1"
   local words="${2:-15}"
   grep <"$file" -v '^[#!\[]' | tr '\n' ' ' | sed 's|[^a-zA-Z0-9@. ]| |g' | tr -s ' ' | cut -d' ' -f"1-$words"
+}
+
+function Docker:start() {
+  # Attempt to start the local Docker engine; returns 0 if a start command was issued.
+  case "$os_kernel" in
+  Darwin)
+    if [[ -d "/Applications/Docker.app" ]]; then
+      IO:print "Starting Docker Desktop ..."
+      open -a Docker
+      return 0
+    fi
+    ;;
+  Linux | GNU*)
+    if command -v systemctl >/dev/null 2>&1; then
+      if systemctl --user list-unit-files 2>/dev/null | grep -q '^docker-desktop\.service'; then
+        IO:print "Starting Docker Desktop ..."
+        systemctl --user start docker-desktop
+        return 0
+      fi
+      if systemctl list-unit-files 2>/dev/null | grep -q '^docker\.service'; then
+        IO:print "Starting Docker daemon (sudo) ..."
+        sudo systemctl start docker
+        return 0
+      fi
+    fi
+    ;;
+  CYGWIN* | MSYS* | MINGW*)
+    local docker_exe="/c/Program Files/Docker/Docker/Docker Desktop.exe"
+    if [[ -x "$docker_exe" ]]; then
+      IO:print "Starting Docker Desktop ..."
+      "$docker_exe" &
+      return 0
+    fi
+    ;;
+  esac
+  return 1
+}
+
+function Docker:ensure_running() {
+  # Verify docker CLI is installed and the daemon is responsive.
+  # If the daemon is down, propose to start Docker Desktop and wait for it.
+  docker -v &>/dev/null || IO:die "Docker is not installed"
+  docker ps &>/dev/null && return 0
+
+  IO:alert "Docker daemon is not running"
+  if ! IO:confirm "Start Docker Desktop now?" ; then
+    IO:die "Docker is not yet started"
+  fi
+  Docker:start || IO:die "Could not find a way to start Docker on this system - please start it manually"
+
+  local waited=0
+  local timeout=60
+  IO:print "Waiting for Docker to become ready (up to ${timeout}s) ..."
+  while ! docker ps &>/dev/null ; do
+    sleep 2
+    waited=$((waited + 2))
+    if (( waited >= timeout )) ; then
+      IO:die "Docker did not start within ${timeout}s - please start it manually and retry"
+    fi
+  done
+  IO:success "Docker is ready"
 }
 
 #####################################################################
